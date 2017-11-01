@@ -8,12 +8,19 @@ import shutil
 import virtualenv
 
 from pyprelude.file_system import make_path
+from pyprelude.platform import ON_WINDOWS
 from pyprelude.process import execute
 from pyprelude.temp_util import temp_cwd
 from pyprelude.util import unpack_args
 from pysimplevcs.git import Git
 
 from pvt.exceptions import Informational
+
+def _make_bin_dir(env_dir):
+    if ON_WINDOWS:
+        return make_path(env_dir, "Scripts")
+    else:
+        return make_path(env_dir, "bin")
 
 class Project(object):
     @staticmethod
@@ -32,9 +39,7 @@ class Project(object):
     def __init__(self, project_dir, env_dir):
         self._project_dir = project_dir
         self._env_dir = env_dir
-
-        # TODO: Implement for non-Windows platforms!
-        self._bin_dir = make_path(self._env_dir, "Scripts")
+        self._bin_dir = _make_bin_dir(self._env_dir)
 
     @property
     def project_dir(self): return self._project_dir
