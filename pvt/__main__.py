@@ -28,14 +28,21 @@ def _do_init(config, args):
 
 def _do_show(config, args):
     project = Project.find(config, args.search_dir)
+
     print("Project directory: {}".format(project.project_dir))
-    print("Virtual environment directory: {}".format(project.env_dir))
-    print("Scripts directory: {}".format(project.bin_dir))
-    script_names = os.listdir(project.bin_dir)
-    if len(script_names) > 0:
-        print("Installed scripts:")
-        for script_name in sorted(script_names):
-            print("  {}".format(script_name))
+
+    if os.path.isdir(project.env_dir):
+        print("Virtual environment directory: {}".format(project.env_dir))
+    else:
+        print("Virtual environment not created")
+
+    if os.path.isdir(project.bin_dir):
+        print("Scripts directory: {}".format(project.bin_dir))
+        script_names = os.listdir(project.bin_dir)
+        if len(script_names) > 0:
+            print("Installed scripts:")
+            for script_name in sorted(script_names):
+                print("  {}".format(script_name))
 
 def _do_exec(config, args):
     project = Project.find(config, args.search_dir)
