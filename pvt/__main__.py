@@ -15,15 +15,11 @@ from pvt.exceptions import Informational
 from pvt.project import Project
 
 _SETUP_COMMANDS = [
-    ("build", "Build package using setup.py in virtual environment"),
-    ("test", "Test package using setup.py in virtual environment"),
-    ("sdist", "Create package distribution using setup.py in virtual environment"),
-    ("upload", "Upload package using setup.py in virtual environment"),
+    ("build", "Build package using setup.py in virtual environment", ["build"]),
+    ("test", "Test package using setup.py in virtual environment", ["test"]),
+    ("sdist", "Create package distribution using setup.py in virtual environment", ["sdist"]),
+    ("upload", "Build, test, create and upload package using setup.py in virtual environment", ["build", "test", "sdist", "upload"])
 ]
-
-def _execute_setup_command(config, args, command):
-    project = Project.find(config, args.search_dir)
-    project.execute_setup_command([command])
 
 def _do_init(config, args):
     project = Project.find(config, args.search_dir)
@@ -101,9 +97,12 @@ def _main(argv=None):
     install_parser.set_defaults(func=_do_install)
     _add_search_dir_arg(install_parser, default_search_dir)
 
-    for command, help in _SETUP_COMMANDS:
+    for command, help, actions in _SETUP_COMMANDS:
         command_parser = subparsers.add_parser(command, help=help)
-        command_parser.set_defaults(func=lambda config, args, command=command: _execute_setup_command(config, args, command))
+        command_parser.set_defaults(
+            func=lambda config, args, actions=actions: Project.find(
+                config,
+                args.search_dir).execute_setup_actions(actions))
         _add_search_dir_arg(command_parser, default_search_dir)
 
     args = parser.parse_args(argv)

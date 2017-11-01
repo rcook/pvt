@@ -60,6 +60,6 @@ class Project(object):
         script_path = make_path(self._bin_dir, script_name)
         os.system(" ".join([script_path] + args))
 
-    def execute_setup_command(self, args):
+    def execute_setup_actions(self, actions):
         with temp_cwd(self._project_dir):
-            self.execute_script("python", ["setup.py"] + args)
+            self.execute_script("python", ["setup.py"] + actions)
