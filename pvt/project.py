@@ -4,6 +4,7 @@
 
 import hashlib
 import os
+import shutil
 import virtualenv
 
 from pyprelude.file_system import make_path
@@ -55,6 +56,10 @@ class Project(object):
             self._env_dir,
             search_dirs=virtualenv.file_search_dirs(),
             download=True)
+
+    def uninitialize(self):
+        if os.path.isdir(self._env_dir):
+            shutil.rmtree(self._env_dir)
 
     def execute_script(self, script_name, args):
         self._check_env_dir()

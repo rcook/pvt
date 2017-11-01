@@ -26,6 +26,11 @@ def _do_init(config, args):
     project.initialize(force=args.force)
     print("Initialized virtual environment for {} in {}".format(project.project_dir, project.env_dir))
 
+def _do_uninit(config, args):
+    project = Project.find(config, args.search_dir)
+    project.uninitialize()
+    print("Uninitialized virtual environment for {} in {}".format(project.project_dir, project.env_dir))
+
 def _do_show(config, args):
     project = Project.find(config, args.search_dir)
 
@@ -87,6 +92,10 @@ def _main(argv=None):
         "-f",
         action="store_true",
         help="Force overwrite of virtual environment directory if it already exists")
+
+    uninit_parser = subparsers.add_parser("uninit", help="Uninitialize virtual environment for current project")
+    uninit_parser.set_defaults(func=_do_uninit)
+    _add_search_dir_arg(uninit_parser, default_search_dir)
 
     show_parser = subparsers.add_parser("show", help="Show information about current virtual environment")
     show_parser.set_defaults(func=_do_show)
