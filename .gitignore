@@ -1,6 +1,5 @@
 /.eggs/
 /build/
 /dist/
-/env/
 /pvt.egg-info/
 *.pyc
