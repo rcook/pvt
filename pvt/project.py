@@ -19,12 +19,13 @@ from pvt.exceptions import Informational
 
 _DIR_YAML_FILE_NAME = "dir.yaml"
 
+# TODO: Concurrent access should be supported!
 class _Directory(object):
     def __init__(self, config):
         self._path = make_path(config.dir, _DIR_YAML_FILE_NAME)
         if os.path.isfile(self._path):
             with open(self._path, "rt") as f:
-                self._data = yaml.loads(f)
+                self._data = yaml.load(f)
         else:
             self._data = {}
 
