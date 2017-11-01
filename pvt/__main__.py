@@ -103,7 +103,7 @@ def _main(argv=None):
 
     for command, help in _SETUP_COMMANDS:
         command_parser = subparsers.add_parser(command, help=help)
-        command_parser.set_defaults(func=lambda config, args: _execute_setup_command(config, args, command))
+        command_parser.set_defaults(func=lambda config, args, command=command: _execute_setup_command(config, args, command))
         _add_search_dir_arg(command_parser, default_search_dir)
 
     args = parser.parse_args(argv)
