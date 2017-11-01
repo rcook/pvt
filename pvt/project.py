@@ -8,6 +8,7 @@ import virtualenv
 
 from pyprelude.file_system import make_path
 from pyprelude.process import execute
+from pyprelude.util import unpack_args
 from pysimplevcs.git import Git
 
 from pvt.exceptions import Informational
@@ -30,11 +31,17 @@ class Project(object):
         self._project_dir = project_dir
         self._env_dir = env_dir
 
+        # TODO: Implement for non-Windows platforms!
+        self._bin_dir = make_path(self._env_dir, "Scripts")
+
     @property
     def project_dir(self): return self._project_dir
 
     @property
     def env_dir(self): return self._env_dir
+
+    @property
+    def bin_dir(self): return self._bin_dir
 
     def initialize(self, force=False):
         if os.path.isdir(self._env_dir):
@@ -48,5 +55,6 @@ class Project(object):
             search_dirs=virtualenv.file_search_dirs(),
             download=True)
 
-    def execute_command(self, command):
-        print("execute_command: {}".format(command))
+    def execute_script(self, script_name, args):
+        script_path = make_path(self._bin_dir, script_name)
+        os.system(" ".join([script_path] + args))

@@ -19,9 +19,26 @@ def _do_init(config, args):
     project.initialize(force=args.force)
     print("Initialized virtual environment for {} in {}".format(project.project_dir, project.env_dir))
 
+def _do_show(config, args):
+    project = Project.find(config, args.search_dir)
+    print("Project directory: {}".format(project.project_dir))
+    print("Virtual environment directory: {}".format(project.env_dir))
+    print("Scripts directory: {}".format(project.bin_dir))
+    script_names = os.listdir(project.bin_dir)
+    if len(script_names) > 0:
+        print("Installed scripts:")
+        for script_name in sorted(script_names):
+            print("  {}".format(script_name))
+
 def _do_exec(config, args):
     project = Project.find(config, args.search_dir)
-    project.execute_command(args.command)
+    args = args.command[:]
+    script_name = args.pop(0)
+    project.execute_script(script_name, args)
+
+def _do_install(config, args):
+    project = Project.find(config, args.search_dir)
+    project.execute_script("pip", ["install", "--editable", project.project_dir])
 
 def _add_search_dir_arg(parser, default):
     parser.add_argument(
@@ -57,6 +74,10 @@ def _main(argv=None):
         action="store_true",
         help="Force overwrite of virtual environment directory if it already exists")
 
+    show_parser = subparsers.add_parser("show", help="Show information about current virtual environment")
+    show_parser.set_defaults(func=_do_show)
+    _add_search_dir_arg(show_parser, default_search_dir)
+
     exec_parser = subparsers.add_parser("exec", help="Execute command line in virtual environment context")
     exec_parser.set_defaults(func=_do_exec)
     _add_search_dir_arg(exec_parser, default_search_dir)
@@ -64,6 +85,10 @@ def _main(argv=None):
         "command",
         nargs=argparse.REMAINDER,
         help="Command line to execute")
+
+    install_parser = subparsers.add_parser("install", help="Install or reinstall current package into virtual environment in editable mode")
+    install_parser.set_defaults(func=_do_install)
+    _add_search_dir_arg(install_parser, default_search_dir)
 
     args = parser.parse_args(argv)
     try:
