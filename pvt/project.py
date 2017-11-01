@@ -49,7 +49,7 @@ class Project(object):
             if force:
                 shutil.rmtree(self._env_dir)
             else:
-                raise Informational("Virtual environment directory {} already exists: use --force to overwrite".format(self._env_dir))
+                raise Informational("Virtual environment directory {} already exists: use \"--force\" to overwrite".format(self._env_dir))
 
         virtualenv.create_environment(
             self._env_dir,
@@ -57,9 +57,15 @@ class Project(object):
             download=True)
 
     def execute_script(self, script_name, args):
+        self._check_env_dir()
         script_path = make_path(self._bin_dir, script_name)
         os.system(" ".join([script_path] + args))
 
     def execute_setup_actions(self, actions):
+        self._check_env_dir()
         with temp_cwd(self._project_dir):
             self.execute_script("python", ["setup.py"] + actions)
+
+    def _check_env_dir(self):
+        if not os.path.isdir(self._env_dir):
+            raise Informational("Virtual environment directory does not exist for project {}: create with \"init\" command".format(self._project_dir))
