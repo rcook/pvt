@@ -43,6 +43,7 @@ setup(
     install_requires=[
         "pyprelude",
         "pysimplevcs",
+        "pyyaml",
         "virtualenv"
     ],
     entry_points={

@@ -6,6 +6,7 @@ import hashlib
 import os
 import shutil
 import virtualenv
+import yaml
 
 from pyprelude.file_system import make_path
 from pyprelude.platform import ON_WINDOWS
@@ -15,6 +16,29 @@ from pyprelude.util import unpack_args
 from pysimplevcs.git import Git
 
 from pvt.exceptions import Informational
+
+_DIR_YAML_FILE_NAME = "dir.yaml"
+
+class _Directory(object):
+    def __init__(self, config):
+        self._path = make_path(config.dir, _DIR_YAML_FILE_NAME)
+        if os.path.isfile(self._path):
+            with open(self._path, "rt") as f:
+                self._data = yaml.loads(f)
+        else:
+            self._data = {}
+
+    def add_project(self, project):
+        projects = self._data.get("projects")
+        if projects is None:
+            projects = []
+            self._data["projects"] = projects
+        projects.append({ "project_dir": project.project_dir, "env_dir": project.env_dir })
+        self._write()
+
+    def _write(self):
+        with open(self._path, "wt") as f:
+            yaml.dump(self._data, f)
 
 def _make_bin_dir(env_dir):
     if ON_WINDOWS:
@@ -34,9 +58,10 @@ class Project(object):
         project_dir = os.path.dirname(setup_py_path)
         project_id = hashlib.md5(project_dir).hexdigest()
         env_dir = make_path(config.dir, "envs", project_id)
-        return Project(project_dir, env_dir)
+        return Project(config, project_dir, env_dir)
 
-    def __init__(self, project_dir, env_dir):
+    def __init__(self, config, project_dir, env_dir):
+        self._directory = _Directory(config)
         self._project_dir = project_dir
         self._env_dir = env_dir
         self._bin_dir = _make_bin_dir(self._env_dir)
@@ -61,6 +86,8 @@ class Project(object):
             self._env_dir,
             search_dirs=virtualenv.file_search_dirs(),
             download=True)
+
+        self._directory.add_project(self)
 
     def uninitialize(self):
         if os.path.isdir(self._env_dir):
