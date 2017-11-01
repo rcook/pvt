@@ -8,6 +8,7 @@ import virtualenv
 
 from pyprelude.file_system import make_path
 from pyprelude.process import execute
+from pyprelude.temp_util import temp_cwd
 from pyprelude.util import unpack_args
 from pysimplevcs.git import Git
 
@@ -58,3 +59,7 @@ class Project(object):
     def execute_script(self, script_name, args):
         script_path = make_path(self._bin_dir, script_name)
         os.system(" ".join([script_path] + args))
+
+    def execute_setup_command(self, args):
+        with temp_cwd(self._project_dir):
+            self.execute_script("python", ["setup.py"] + args)

@@ -14,6 +14,17 @@ from pvt.config import Config
 from pvt.exceptions import Informational
 from pvt.project import Project
 
+_SETUP_COMMANDS = [
+    ("build", "Build package using setup.py in virtual environment"),
+    ("test", "Test package using setup.py in virtual environment"),
+    ("sdist", "Create package distribution using setup.py in virtual environment"),
+    ("upload", "Upload package using setup.py in virtual environment"),
+]
+
+def _execute_setup_command(config, args, command):
+    project = Project.find(config, args.search_dir)
+    project.execute_setup_command([command])
+
 def _do_init(config, args):
     project = Project.find(config, args.search_dir)
     project.initialize(force=args.force)
@@ -89,6 +100,11 @@ def _main(argv=None):
     install_parser = subparsers.add_parser("install", help="Install or reinstall current package into virtual environment in editable mode")
     install_parser.set_defaults(func=_do_install)
     _add_search_dir_arg(install_parser, default_search_dir)
+
+    for command, help in _SETUP_COMMANDS:
+        command_parser = subparsers.add_parser(command, help=help)
+        command_parser.set_defaults(func=lambda config, args: _execute_setup_command(config, args, command))
+        _add_search_dir_arg(command_parser, default_search_dir)
 
     args = parser.parse_args(argv)
     try:
