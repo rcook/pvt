@@ -7,6 +7,7 @@ import os
 import virtualenv
 
 from pyprelude.file_system import make_path
+from pyprelude.process import execute
 from pysimplevcs.git import Git
 
 from pvt.exceptions import Informational
@@ -46,3 +47,6 @@ class Project(object):
             self._env_dir,
             search_dirs=virtualenv.file_search_dirs(),
             download=True)
+
+    def execute_command(self, command):
+        print("execute_command: {}".format(command))

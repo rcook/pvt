@@ -20,10 +20,16 @@ def _do_init(config, args):
     print("Initialized virtual environment for {} in {}".format(project.project_dir, project.env_dir))
 
 def _do_exec(config, args):
-    project_dir = _project_dir()
+    project = Project.find(config, args.search_dir)
+    project.execute_command(args.command)
 
-    print(project_dir)
-    print(args)
+def _add_search_dir_arg(parser, default):
+    parser.add_argument(
+        "--search-dir",
+        "-d",
+        type=make_path,
+        default=make_path(default),
+        help="Location from which to search for project")
 
 def _main(argv=None):
     if argv is None:
@@ -31,6 +37,8 @@ def _main(argv=None):
 
     config_dir = make_path(os.path.expanduser(os.environ.get("PVT_DIR", "~/.pvt")))
     config = Config(config_dir)
+
+    default_search_dir = os.getcwd()
 
     parser = argparse.ArgumentParser(prog=__project_name__, description=__description__)
     parser.add_argument(
@@ -42,20 +50,16 @@ def _main(argv=None):
 
     init_parser = subparsers.add_parser("init", help="Initialize virtual environment for current project")
     init_parser.set_defaults(func=_do_init)
+    _add_search_dir_arg(init_parser, default_search_dir)
     init_parser.add_argument(
         "--force",
         "-f",
         action="store_true",
         help="Force overwrite of virtual environment directory if it already exists")
-    init_parser.add_argument(
-        "--search-dir",
-        "-d",
-        type=make_path,
-        default=make_path(os.getcwd()),
-        help="Location from which to search for project")
 
     exec_parser = subparsers.add_parser("exec", help="Execute command line in virtual environment context")
     exec_parser.set_defaults(func=_do_exec)
+    _add_search_dir_arg(exec_parser, default_search_dir)
     exec_parser.add_argument(
         "command",
         nargs=argparse.REMAINDER,
