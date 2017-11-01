@@ -41,7 +41,9 @@ setup(
     license="MIT",
     packages=["pvt"],
     install_requires=[
-        # TODO: Add dependencies here: requirements.txt will use this list too
+        "pyprelude",
+        "pysimplevcs",
+        "virtualenv"
     ],
     entry_points={
         "console_scripts": [
