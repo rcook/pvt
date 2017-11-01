@@ -3,5 +3,5 @@
 ##################################################
 
 __project_name__ = "pvt"
-__version__ = "0.1"
-__description__ = "Description of package"
+__version__ = "0.0"
+__description__ = "Python virtual environment tool"

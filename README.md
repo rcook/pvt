@@ -3,7 +3,7 @@
 [![View on PyPI](https://img.shields.io/pypi/v/pvt.svg)](https://pypi.python.org/pypi/pvt)
 [![Licence](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/rcook/pvt/master/LICENSE)
 
-Python tool with virtual environment wrappers
+Python virtual environment tool
 
 ## Clone repository
 
