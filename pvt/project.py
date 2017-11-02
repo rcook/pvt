@@ -17,6 +17,8 @@ from pysimplevcs.git import Git
 
 from pvt.exceptions import Informational
 
+METADATA_FILE_NAME = "_pvt.yaml"
+
 def _make_bin_dir(env_dir):
     if ON_WINDOWS:
         return make_path(env_dir, "Scripts")
@@ -63,7 +65,7 @@ class Project(object):
             search_dirs=virtualenv.file_search_dirs(),
             download=True)
 
-        metadata_path = make_path(self._env_dir, "_pvt.yaml")
+        metadata_path = make_path(self._env_dir, METADATA_FILE_NAME)
         with open(metadata_path, "wt") as f:
             yaml.dump({"project_dir": self._project_dir}, f)
 

@@ -5,14 +5,16 @@
 from __future__ import print_function
 import argparse
 import os
+import shutil
 import sys
+import yaml
 
 from pyprelude.file_system import make_path
 
 from pvt import __description__, __project_name__, __version__
 from pvt.config import Config
 from pvt.exceptions import Informational
-from pvt.project import Project
+from pvt.project import METADATA_FILE_NAME, Project
 
 _SETUP_COMMANDS = [
     ("build", "Build package using setup.py in virtual environment", ["build"]),
@@ -58,6 +60,53 @@ def _do_exec(config, args):
 def _do_install(config, args):
     project = Project.find(config, args.search_dir)
     project.execute_script("pip", ["install", "--editable", project.project_dir])
+
+def _do_info(config, args):
+    envs_dir = make_path(config.dir, "envs")
+    unreferenced_count = 0
+    if os.path.isdir(envs_dir):
+        for d in os.listdir(envs_dir):
+            env_dir = make_path(envs_dir, d)
+            metadata_path = make_path(env_dir, METADATA_FILE_NAME)
+            if os.path.isfile(metadata_path):
+                with open(metadata_path, "rt") as f:
+                    obj = yaml.load(f)
+                project_dir = obj["project_dir"]
+
+                if os.path.isdir(project_dir):
+                    print("Project: {}".format(project_dir))
+                else:
+                    print("Project: {} (no longer exists)".format(project_dir))
+                    unreferenced_count += 1
+
+                print("  {}".format(env_dir))
+                print()
+
+    if unreferenced_count > 0:
+        print("There are unreferenced virtual environment directories: use \"vacuum\" command to remove them")
+
+def _do_vacuum(config, args):
+    envs_dir = make_path(config.dir, "envs")
+    unreferenced_count = 0
+    if os.path.isdir(envs_dir):
+        for d in os.listdir(envs_dir):
+            env_dir = make_path(envs_dir, d)
+            metadata_path = make_path(env_dir, METADATA_FILE_NAME)
+            if os.path.isfile(metadata_path):
+                with open(metadata_path, "rt") as f:
+                    obj = yaml.load(f)
+                project_dir = obj["project_dir"]
+                if not os.path.isdir(project_dir):
+                    shutil.rmtree(env_dir)
+                    print("Removed unreferenced virtual environment directory {}".format(env_dir))
+                    unreferenced_count += 1
+
+    if unreferenced_count == 0:
+        print("There are no unreferenced virtual environment directories")
+    elif unreferenced_count == 1:
+        print("Removed 1 unreferenced virtual environment directory")
+    elif unreferenced_count > 1:
+        print("Removed {} unreferenced virtual environment directories".format(unreferenced_count))
 
 def _add_search_dir_arg(parser, default):
     parser.add_argument(
@@ -120,6 +169,12 @@ def _main(argv=None):
                 config,
                 args.search_dir).execute_setup_actions(actions))
         _add_search_dir_arg(command_parser, default_search_dir)
+
+    info_parser = subparsers.add_parser("info", help="Show virtual environment directory information")
+    info_parser.set_defaults(func=_do_info)
+
+    vacuum_parser = subparsers.add_parser("vacuum", help="Clean up unreferenced virtual environment directories")
+    vacuum_parser.set_defaults(func=_do_vacuum)
 
     args = parser.parse_args(argv)
     try:
