@@ -17,30 +17,6 @@ from pysimplevcs.git import Git
 
 from pvt.exceptions import Informational
 
-_DIR_YAML_FILE_NAME = "dir.yaml"
-
-# TODO: Concurrent access should be supported!
-class _Directory(object):
-    def __init__(self, config):
-        self._path = make_path(config.dir, _DIR_YAML_FILE_NAME)
-        if os.path.isfile(self._path):
-            with open(self._path, "rt") as f:
-                self._data = yaml.load(f)
-        else:
-            self._data = {}
-
-    def add_project(self, project):
-        projects = self._data.get("projects")
-        if projects is None:
-            projects = []
-            self._data["projects"] = projects
-        projects.append({ "project_dir": project.project_dir, "env_dir": project.env_dir })
-        self._write()
-
-    def _write(self):
-        with open(self._path, "wt") as f:
-            yaml.dump(self._data, f)
-
 def _make_bin_dir(env_dir):
     if ON_WINDOWS:
         return make_path(env_dir, "Scripts")
@@ -59,10 +35,9 @@ class Project(object):
         project_dir = os.path.dirname(setup_py_path)
         project_id = hashlib.md5(project_dir).hexdigest()
         env_dir = make_path(config.dir, "envs", project_id)
-        return Project(config, project_dir, env_dir)
+        return Project(project_dir, env_dir)
 
-    def __init__(self, config, project_dir, env_dir):
-        self._directory = _Directory(config)
+    def __init__(self, project_dir, env_dir):
         self._project_dir = project_dir
         self._env_dir = env_dir
         self._bin_dir = _make_bin_dir(self._env_dir)
@@ -88,7 +63,9 @@ class Project(object):
             search_dirs=virtualenv.file_search_dirs(),
             download=True)
 
-        self._directory.add_project(self)
+        metadata_path = make_path(self._env_dir, "_pvt.yaml")
+        with open(metadata_path, "wt") as f:
+            yaml.dump({"project_dir": self._project_dir}, f)
 
     def uninitialize(self):
         if os.path.isdir(self._env_dir):
